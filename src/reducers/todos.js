@@ -1,3 +1,5 @@
+const waitFor = async (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const initialState = [
 	{ id: 1, text: "Learn React", completed: false },
 	{ id: 2, text: "Learn Redux", completed: false },
@@ -5,6 +7,8 @@ const initialState = [
 
 const COMPLETED = "COMPLETED";
 const ADD_TASK = "ADD_TASK";
+const START_TASK = "START_TASK";
+const ERROR_TASK = "ERROR_TASK";
 
 export const completed = (id) => ({
 	type: COMPLETED,
@@ -14,6 +18,14 @@ export const completed = (id) => ({
 export const addTask = (task) => ({
 	type: ADD_TASK,
 	payload: task,
+});
+
+export const startTask = () => ({
+	type: START_TASK,
+});
+
+export const errorTask = () => ({
+	type: ERROR_TASK,
 });
 
 export default (state = initialState, action) => {
@@ -40,5 +52,29 @@ export default (state = initialState, action) => {
 		default:
 			return state;
 			break;
+	}
+};
+
+export const saveTodo = (text) => async (dispatch, getState) => {
+	dispatch(startTask());
+	try {
+		const newTodo = {
+			text,
+			completed: false,
+		};
+
+		const response = await fetch(
+			"https://jsonplaceholder.typicode.com/todos",
+			{
+				method: "POST",
+				body: JSON.stringify(newTodo),
+			}
+		);
+
+		const id = await response.json();
+
+		dispatch(addTask({ ...newTodo, ...id }));
+	} catch (error) {
+		dispatch(errorTask());
 	}
 };
